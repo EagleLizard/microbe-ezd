@@ -1,3 +1,4 @@
+import { Point } from '../geom/point';
 
 /*
 Biome. Where organism(s) live, generally.
@@ -19,10 +20,25 @@ BAD/NON naming ideas:
 _*/
 export class Biome {
   constructor(opts) {
+    /*
+    I don't think I need to consider w/h bounds atm. I'm not rendering, and if I do,
+      I can add it then, or just not render stuff out of bounds.
+    _*/
     // this.w = opts?.w ?? 2160;
     // this.h = opts?.h ?? 3840;
-    this.w = opts?.w ?? 480;
-    this.h = opts?.h ?? 640;
+    // this.w = opts?.w ?? 480;
+    // this.h = opts?.h ?? 640;
+    this.origin = new Point(0, 0);
+    /*
+    My current thinking is, an entity is anything.
+      e.g.: microbes, food, obstructions
+    maybe some things are not entities; like forces, zones, events,
+      properties, ...
+    _*/
+    this.entities = [];
   }
+  /* a la love2d */
+  update(cb) {
 
+  }
 }

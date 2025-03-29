@@ -8,6 +8,8 @@ lick.clearPackages = true
 local printf = require "util.printf"
 local dllModule = require "lib.datastruct.dll"
 local Dll = dllModule.Dll
+local menuModule = require "lib.ui.menu.menu"
+local Menu = menuModule.Menu
 
 local Obj = (function ()
   ---@class ezd.Obj
@@ -35,11 +37,22 @@ local Ctx = (function ()
   ---@class ezd.Ctx
   ---@field frameCount integer
   ---@field dt number
+  ---@field sw integer
+  ---@field sh integer
+  ---@field menu ezd.ui.Menu
   local Ctx = {}
   Ctx.__index = Ctx
   function Ctx.new()
     local self = setmetatable({}, Ctx)
     self.frameCount = 0
+    self.sw = love.graphics.getWidth()
+    self.sh = love.graphics.getHeight()
+    self.menu = Menu.new({
+      x = 10 + 200,
+      y = 10,
+      w = 100,
+      h = 100
+    })
     return self
   end
   function Ctx:update(dt)
@@ -111,4 +124,5 @@ function love.draw()
   local ctx = getCtx()
   local printStr = "hello ~ \n"..dbgStr(ctx)
   love.graphics.print(printStr, 20, 20)
+  ctx.menu:render()
 end

@@ -1,9 +1,7 @@
 
 local printf = require "util.printf"
 
-local Point = require "lib.geom.point"
-local uiElemModule = require "lib.ui.ui-elem"
-local UiElem = uiElemModule.UiElem
+local UiElem = require "lib.ui.ui-elem"
 local Button = require "lib.ui.button.button"
 
 local Menu = (function ()
@@ -30,10 +28,9 @@ local Menu = (function ()
       "i",
     }
     for _, btnLabel in ipairs(btns) do
-      self:addChild(Button.new({ text = btnLabel }))
+      local nBtn = Button.new({ text = btnLabel })
+      self:addChild(nBtn)
     end
-    -- self:addChild(Button.new({ text = "a" }))
-    -- self:addChild(Button.new({ text = "b" }))
     return self --[[@as ezd.ui.Menu]]
   end
   function Menu:render(opts)
@@ -46,8 +43,18 @@ local Menu = (function ()
     local y = self.y
     local w = self:width()
     local h = self:height()
-    -- love.graphics.rectangle("line", origin.x, origin.y, self.w, self.h)
     love.graphics.rectangle("line", x, y, w, h)
+    --[[ update child positions ]]
+    self:layout()
+    --[[ call super.render ]]
+    UiElem.render(self, opts)
+  end
+  function Menu:layout()
+    --[[ call super.layout ]]
+    UiElem.layout(self)
+
+    local x = self.x
+    local y = self.y
     --[[ update child positions ]]
     local innerX = 0
     local innerY = 0
@@ -77,9 +84,8 @@ local Menu = (function ()
       if innerX > self:width() then
         overflowX(child:height())
       end
+      -- printf("reflow: %s\n", reflow)
     end
-    --[[ call super.render ]]
-    UiElem.render(self, opts)
   end
   return Menu
 end)()

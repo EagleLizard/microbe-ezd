@@ -87,6 +87,11 @@ local UiElem = (function ()
   end
 
   --[[ overrides ]]
+  function UiElem:layout()
+    for _, el in ipairs(self.children) do
+      el:layout()
+    end
+  end
   ---@param opts? ezd.ui.RenderOpts
   function UiElem:render(opts)
     for _, el in ipairs(self.children) do
@@ -97,8 +102,4 @@ local UiElem = (function ()
   return UiElem
 end)()
 
-local uiElemModule = {
-  UiElem = UiElem,
-}
-
-return uiElemModule
+return UiElem

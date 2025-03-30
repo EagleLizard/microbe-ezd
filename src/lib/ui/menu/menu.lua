@@ -13,8 +13,6 @@ local Menu = (function ()
   ---@param opts ezd.ui.UiElemOpts
   function Menu.new(opts)
     local self = setmetatable(UiElem.new(opts), Menu)
-    -- self.minHeight = opts.minHeight or 100
-    -- self.minWidth = opts.minWidth or 200
     self.maxWidth = opts.maxWidth or 200
     local btns = {
       "a",
@@ -26,9 +24,35 @@ local Menu = (function ()
       "g",
       "h",
       "i",
+      "j",
+      "k",
+      "l",
+      "m",
+      "n",
+      "o",
+      "p",
+      "q",
+      "r",
+      "s",
+      "t",
+      "u",
+      "v",
+      "w",
+      "x",
+      "y",
+      "z",
     }
     for _, btnLabel in ipairs(btns) do
       local nBtn = Button.new({ text = btnLabel })
+      if nBtn.label == "d" then
+        nBtn.minHeight = nBtn.minHeight + 7
+      end
+      if nBtn.label == "h" or nBtn.label == "r" then
+        nBtn.minHeight = nBtn.minHeight + 10
+      end
+      if nBtn.label == "e" or nBtn.label == "i" or nBtn.label == "o" or nBtn.label == "q" then
+        nBtn.minWidth = nBtn.minWidth + 17
+      end
       self:addChild(nBtn)
     end
     return self --[[@as ezd.ui.Menu]]

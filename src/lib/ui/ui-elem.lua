@@ -1,5 +1,6 @@
 
 local printf = require "util.printf"
+local Point = require "lib.geom.point"
 
 --[[ 
 going to borrow concepts from DOM/TUI apps.
@@ -85,44 +86,79 @@ local UiElem = (function ()
     local r = x + self:width()
     return r
   end
-
+  ---@param ny? number
+  function UiElem:bottom(ny)
+    local y = ny or self.y
+    local b = y + self:height()
+    return b
+  end
   --[[ overrides ]]
   function UiElem:layout()
-    local x = self.x
-    local y = self.y
-    local innerX = 0
-    local innerY = 0
-    local function overflowX(childHeight)
-      innerX = 0
-      innerY = innerY + childHeight
-    end
-    for _, el in ipairs(self.children) do
-      --[[ update child positions ]]
-      el:layout()
-      local ex = x + innerX
-      local ey = y + innerY
-      local er = el:right(ex)
-      if er > self:right() then
-        --[[ x overflow; reflow ]]
-        local nw = er - self.x
-        if nw > self.maxWidth then
-          --[[ reflow ]]
-          overflowX(el:height())
-          ex = x + innerX
-          ey = y + innerY
-        else
-          --[[ grow horiz. ]]
-          self.w = nw
+    ---@param sfIdx integer
+    ---@param nextEl ezd.ui.UiElem
+    local function getNextChildPos(sfIdx, nextEl)
+      --[[
+        find the next empty x and y pos out of only
+          the childEls that have already been laid-out
+      ]]
+      local nx = self.x
+      local ny = self.y
+      local maxY = self.y
+      local maxX = self.x
+      local maxR = self.x
+      local maxB = self.y
+      for i=1, sfIdx-1 do
+        local child = self.children[i]
+        local cy = child.y
+        local cx = child.x
+        local cr = child:right()
+        local cb = child:bottom()
+        if cy > maxY then
+          maxY = cy
+          maxX = self.x
+          maxR = self.x
+          maxB = self.y
         end
+        if cx > maxX then
+          maxX = cx
+        end
+        if cr > maxR then
+          maxR = cr
+        end
+        if cb > maxB then
+          maxB = cb
+        end
+        
       end
-      el.x = ex
-      el.y = ey
-      innerX = innerX + el:width()
-      if innerX > self:width() then
-        overflowX(el:height())
+      if maxR - self.x < self.maxWidth then
+        --[[ can grow ]]
+        nx = maxR
+        ny = maxY
+      else
+        nx = self.x
+        ny = maxB
+      end
+      local nPt = Point.new(nx, ny)
+      return nPt
+    end
+    for i, el in ipairs(self.children) do
+      el:layout()
+      local nPos = getNextChildPos(i, el)
+      el.x = nPos.x
+      el.y = nPos.y
+      local er = el:right()
+      local eb = el:bottom()
+      local nw = er - self.x
+      local nh = eb - self.y
+      if nw > self.w then
+        --[[ grow horiz. ]]
+        self.w = nw
+      end
+      if nh > self.h then
+        --[[ grow vert. ]]
+        self.h = nh
       end
     end
-
   end
   ---@param opts? ezd.ui.RenderOpts
   function UiElem:render(opts)

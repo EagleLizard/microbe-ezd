@@ -62,7 +62,8 @@ local Ctx = (function ()
   return Ctx
 end)()
 
-local function initEtc()
+---@param ctx ezd.Ctx
+local function initEtc(ctx)
   printf("initEtc()\n")
   local testDll = Dll.new()
   -- testDll:pushBack(0)
@@ -82,16 +83,23 @@ local function initEtc()
     assert(dv == testVals[i])
   end
   printf("\n")
+  local deregCb = ctx.menu:onMousepressed(function (x, y)
+    printf("menu onMousepressed: x: %s, y: %s\n", x, y)
+  end)
 end
 
 local getCtx = (function ()
   local _ctx = nil
   return function()
+    local doEtc = false
     if _ctx == nil then
-      initEtc()
-      printf("init ctx\n")
+      doEtc = true
     end
     _ctx = _ctx or Ctx.new()
+    if doEtc then
+      initEtc(_ctx)
+      printf("init ctx\n")
+    end
     return _ctx
   end
 end)()
@@ -112,6 +120,28 @@ local function dbgStr(ctx)
     str = str..line.."\n"
   end
   return str
+end
+
+function love.mousepressed(mx, my, dx, dy, istouch)
+  local ctx = getCtx()
+  -- printf("mousemoved (x,y,dx,dy,istouch): %s,%s,%s,%s,%s\n", x, y, dx, dy, istouch)
+  if ctx.menu:inBoundingRect(mx, my) then
+    local els = {}
+    local elQueue = { ctx.menu }
+    while #elQueue > 0 do
+      local el = table.remove(elQueue, 1)
+      if el:inBoundingRect(mx, my) then
+        table.insert(els, el)
+        for _, child in ipairs(el.children) do
+          table.insert(elQueue, child)
+        end
+      end
+    end
+    for _, el in ipairs(els) do
+      -- printf("%s\n", el._type)
+      el.mousepressedRegistry:fire(mx, my)
+    end
+  end
 end
 
 function love.update(dt)

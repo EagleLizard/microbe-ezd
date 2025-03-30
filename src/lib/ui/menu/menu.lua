@@ -13,6 +13,7 @@ local Menu = (function ()
   ---@param opts ezd.ui.UiElemOpts
   function Menu.new(opts)
     local self = setmetatable(UiElem.new(opts), Menu)
+    self._type = "ezd.ui.Menu"
     self.maxWidth = opts.maxWidth or 200
     local btns = {
       "a",

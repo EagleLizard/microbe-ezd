@@ -22,6 +22,7 @@ local TextElem = (function ()
   function TextElem.new(opts)
     local self = setmetatable(UiElem.new(opts), TextElem)
     opts = opts or {}
+    self._type = "ezd.ui.TextElem"
     self.innerText = opts.innerText or ""
     self.font = opts.font or default_font
     return self

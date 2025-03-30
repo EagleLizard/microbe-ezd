@@ -1,6 +1,7 @@
 
 local printf = require "util.printf"
 local Point = require "lib.geom.point"
+local EventRegistry = require "lib.ui.event-registry"
 
 --[[ 
 going to borrow concepts from DOM/TUI apps.
@@ -24,6 +25,7 @@ going to borrow concepts from DOM/TUI apps.
 
 local UiElem = (function ()
   ---@class ezd.ui.UiElem
+  ---@field _type string
   ---@field children ezd.ui.UiElem[]
   ---@field id integer
   ---@field x number
@@ -34,7 +36,8 @@ local UiElem = (function ()
   ---@field minHeight number
   ---@field maxWidth number
   ---@field maxHeight number
-  local UiElem = {}
+  ---@field mousepressedRegistry ezd.ui.EventRegistry
+  local UiElem = { _type = "ezd.ui.UiElem" }
   UiElem.__index = UiElem
 
   local elemIdCounter = 0
@@ -49,6 +52,7 @@ local UiElem = (function ()
   function UiElem.new(opts)
     local self = setmetatable({}, UiElem)
     opts = opts or {}
+    -- self._type = "ezd.ui.UiElem"
     self.id = getElemId()
     self.x = opts.x or 0
     self.y = opts.y or 0
@@ -59,6 +63,8 @@ local UiElem = (function ()
     self.maxWidth = opts.maxWidth or math.huge
     self.maxHeight = opts.maxHeight or math.huge
     self.children = {}
+    --[[ events ]]
+    self.mousepressedRegistry = EventRegistry.new()
     return self
   end
 
@@ -92,6 +98,23 @@ local UiElem = (function ()
     local b = y + self:height()
     return b
   end
+  ---@param x number
+  ---@param y number
+  function UiElem:inBoundingRect(x, y)
+    return (
+      x >= self.x
+      and x <= self:right()
+      and y >= self.y
+      and y <= self:bottom()
+    )
+  end
+
+  --[[ events ]]
+  ---@param fn function
+  function UiElem:onMousepressed(fn)
+    return self.mousepressedRegistry:register(fn)
+  end
+
   --[[ overrides ]]
   function UiElem:layout()
     ---@param sfIdx integer

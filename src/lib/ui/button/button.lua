@@ -20,6 +20,7 @@ local Button = (function ()
   function Button.new(opts)
     local self = setmetatable(UiElem.new(opts), Button)
     opts = opts or {}
+    self._type = "ezd.ui.Button"
     self.minWidth = opts.minWidth or 30
     self.minHeight = opts.minHeight or 30
     self.label = opts.text

@@ -30,10 +30,17 @@ local Button = (function ()
   function Button:layout()
     --[[ call super.layout ]]
     UiElem.layout(self)
+    local w = self:width()
+    local h = self:height()
 
     for _, child in ipairs(self.children) do
-      child.x = self.x + 5
-      child.y = self.y + 5
+      local cw = child:width()
+      local ch = child:height()
+      --[[ center children ]]
+      local cx = (self.x + (math.floor(w/2))) - math.floor(cw/2)
+      local cy = (self.y + (math.floor(h/2))) - math.floor(ch/2)
+      child.x = cx
+      child.y = cy
     end
   end
   function Button:render(opts)

@@ -49,44 +49,6 @@ local Menu = (function ()
     --[[ call super.render ]]
     UiElem.render(self, opts)
   end
-  function Menu:layout()
-    --[[ call super.layout ]]
-    UiElem.layout(self)
-
-    local x = self.x
-    local y = self.y
-    --[[ update child positions ]]
-    local innerX = 0
-    local innerY = 0
-    for _, child in ipairs(self.children) do
-      local function overflowX(childHeight)
-        innerX = 0
-        innerY = innerY + childHeight
-      end
-      local cx = x + innerX
-      local cy = y + innerY
-      local cr = child:right(cx)
-      if cr > self:right() then
-        --[[ x overflow; reflow ]]
-        local nw = cr - self.x
-        if nw > self.maxWidth then
-          --[[ reflow ]]
-          overflowX(child:height())
-          cx = x + innerX
-          cy = y + innerY
-        else
-          self.w = nw
-        end
-      end
-      child.x = cx
-      child.y = cy
-      innerX = innerX + child:width()
-      if innerX > self:width() then
-        overflowX(child:height())
-      end
-      -- printf("reflow: %s\n", reflow)
-    end
-  end
   return Menu
 end)()
 

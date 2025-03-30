@@ -88,9 +88,41 @@ local UiElem = (function ()
 
   --[[ overrides ]]
   function UiElem:layout()
-    for _, el in ipairs(self.children) do
-      el:layout()
+    local x = self.x
+    local y = self.y
+    local innerX = 0
+    local innerY = 0
+    local function overflowX(childHeight)
+      innerX = 0
+      innerY = innerY + childHeight
     end
+    for _, el in ipairs(self.children) do
+      --[[ update child positions ]]
+      el:layout()
+      local ex = x + innerX
+      local ey = y + innerY
+      local er = el:right(ex)
+      if er > self:right() then
+        --[[ x overflow; reflow ]]
+        local nw = er - self.x
+        if nw > self.maxWidth then
+          --[[ reflow ]]
+          overflowX(el:height())
+          ex = x + innerX
+          ey = y + innerY
+        else
+          --[[ grow horiz. ]]
+          self.w = nw
+        end
+      end
+      el.x = ex
+      el.y = ey
+      innerX = innerX + el:width()
+      if innerX > self:width() then
+        overflowX(el:height())
+      end
+    end
+
   end
   ---@param opts? ezd.ui.RenderOpts
   function UiElem:render(opts)

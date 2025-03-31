@@ -10,7 +10,13 @@
   "cSpell.words": [
     "datastruct",
     "februum",
+    "istouch",
     "keypressed",
-    "mousepressed"
+    "mousepress",
+    "mousepressed",
+    "mouserelease",
+    "mousereleased",
+    "onclick",
+    "onclicked"
   ],
 }

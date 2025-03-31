@@ -6,6 +6,8 @@ local Button = require "lib.ui.button.button"
 
 local Menu = (function ()
   ---@class ezd.ui.Menu: ezd.ui.UiElem
+  ---@field btnClickedOffFns fun()[]
+  ---@field clickedBtn ezd.ui.Button
   local Menu = {}
   Menu.__index = Menu
   setmetatable(Menu, { __index = UiElem })
@@ -15,6 +17,7 @@ local Menu = (function ()
     local self = setmetatable(UiElem.new(opts), Menu)
     self._type = "ezd.ui.Menu"
     self.maxWidth = opts.maxWidth or 200
+    self.btnClickedOffFns = {}
     local btns = {
       "a",
       "b",
@@ -45,30 +48,35 @@ local Menu = (function ()
     }
     for _, btnLabel in ipairs(btns) do
       local nBtn = Button.new({ text = btnLabel })
-      if nBtn.label == "d" then
-        nBtn.minHeight = nBtn.minHeight + 7
-      end
-      if nBtn.label == "h" or nBtn.label == "r" then
-        nBtn.minHeight = nBtn.minHeight + 10
-      end
-      if nBtn.label == "e" or nBtn.label == "i" or nBtn.label == "o" or nBtn.label == "q" then
-        nBtn.minWidth = nBtn.minWidth + 17
-      end
+      local btnClickedOffFn = nBtn:onClicked(function (e)
+        self:handleBtnClick(e)
+      end)
+      table.insert(self.btnClickedOffFns, btnClickedOffFn)
       self:addChild(nBtn)
     end
     return self --[[@as ezd.ui.Menu]]
   end
+
+  --[[ event handling ]]
+  function Menu:handleBtnClick(e)
+    self.clickedBtn = e.el
+    printf("clicked: %s\n", e.el.label)
+  end
+
   function Menu:render(opts)
     --[[
       where should origin go? center?
       is origin derived from with/height? Or explicit?  
     ]]
-    -- local origin = Point.new(self.x, self.y)
     local x = self.x
     local y = self.y
     local w = self:width()
     local h = self:height()
     love.graphics.rectangle("line", x, y, w, h)
+    if self.clickedBtn ~= nil then
+      local clickedBtnTxt = string.format("clicked button: %s", self.clickedBtn.label)
+      love.graphics.printf(clickedBtnTxt, x, self:bottom() + 10, w)
+    end
     --[[ update child positions ]]
     self:layout()
     --[[ call super.render ]]

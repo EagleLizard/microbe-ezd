@@ -1,6 +1,6 @@
 
 local EventRegistry = (function ()
-  ---@class ezd.ui.EventRegistry
+  ---@class ezd.ui.EventRegistry<E>
   ---@field fnMap { [integer]: function }
   local EventRegistry = {}
   EventRegistry.__index = EventRegistry
@@ -17,8 +17,6 @@ local EventRegistry = (function ()
     self.fnMap = {}
     return self
   end
-
-  ---@param fn function
   ---@return function
   function EventRegistry:register(fn)
     local fnId = getEventFnId()

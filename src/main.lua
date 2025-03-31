@@ -83,9 +83,6 @@ local function initEtc(ctx)
     assert(dv == testVals[i])
   end
   printf("\n")
-  local deregCb = ctx.menu:onMousepressed(function (x, y)
-    printf("menu onMousepressed: x: %s, y: %s\n", x, y)
-  end)
 end
 
 local getCtx = (function ()
@@ -103,13 +100,6 @@ local getCtx = (function ()
     return _ctx
   end
 end)()
--- local function initCtx()
---   if _ctx == nil then
---     printf("init ctx\n")
---   end
---   _ctx = _ctx or Ctx.new()
---   return _ctx
--- end
 
 local function dbgStr(ctx)
   local lines = {}
@@ -124,28 +114,26 @@ end
 
 function love.mousepressed(mx, my, dx, dy, istouch)
   local ctx = getCtx()
-  -- printf("mousemoved (x,y,dx,dy,istouch): %s,%s,%s,%s,%s\n", x, y, dx, dy, istouch)
-  if ctx.menu:inBoundingRect(mx, my) then
-    local els = {}
-    local elQueue = { ctx.menu }
-    while #elQueue > 0 do
-      local el = table.remove(elQueue, 1)
-      if el:inBoundingRect(mx, my) then
-        table.insert(els, el)
-        for _, child in ipairs(el.children) do
-          table.insert(elQueue, child)
-        end
-      end
-    end
-    for _, el in ipairs(els) do
-      -- printf("%s\n", el._type)
-      el.mousepressedRegistry:fire(mx, my)
-    end
+  local els = ctx.menu:getDescendants()
+  for _, el in ipairs(els) do
+    el:mousepress({
+      x = mx,
+      y = my,
+    })
+  end
+end
+function love.mousereleased(mx, my, dx, dy, istouch)
+  local ctx = getCtx()
+  local els = ctx.menu:getDescendants()
+  for _, el in ipairs(els) do
+    el:mouserelease({
+      x = mx,
+      y = my,
+    })
   end
 end
 
 function love.update(dt)
-  -- lurker.update()
   local ctx = getCtx()
   ctx:update(dt)
 end

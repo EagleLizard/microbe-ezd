@@ -2,6 +2,7 @@
 local printf = require "util.printf"
 local Point = require "lib.geom.point"
 local EventRegistry = require "lib.ui.event-registry"
+local Queue = require "lib.datastruct.queue"
 
 --[[ 
 going to borrow concepts from DOM/TUI apps.
@@ -23,6 +24,9 @@ going to borrow concepts from DOM/TUI apps.
 ---@field maxWidth? number
 ---@field maxHeight? number
 
+---@class ezd.ui.UiElem.EventState
+---@field mousepressed boolean
+
 local UiElem = (function ()
   ---@class ezd.ui.UiElem
   ---@field _type string
@@ -37,6 +41,9 @@ local UiElem = (function ()
   ---@field maxWidth number
   ---@field maxHeight number
   ---@field mousepressedRegistry ezd.ui.EventRegistry
+  ---@field mousereleasedRegistry ezd.ui.EventRegistry
+  ---@field onclickedRegistry ezd.ui.EventRegistry
+  ---@field eventState ezd.ui.UiElem.EventState
   local UiElem = { _type = "ezd.ui.UiElem" }
   UiElem.__index = UiElem
 
@@ -65,6 +72,11 @@ local UiElem = (function ()
     self.children = {}
     --[[ events ]]
     self.mousepressedRegistry = EventRegistry.new()
+    self.mousereleasedRegistry = EventRegistry.new()
+    self.onclickedRegistry = EventRegistry.new()
+    self.eventState = {
+      mousepressed = false,
+    }
     return self
   end
 
@@ -108,11 +120,53 @@ local UiElem = (function ()
       and y <= self:bottom()
     )
   end
+  --[[ ancestry ]]
+  ---@return ezd.ui.UiElem[]
+  function UiElem:getDescendants()
+    local elQueue = Queue.new()
+    local descEls = {}
+    elQueue:push(self)
+    while not elQueue:empty() do
+      local el = elQueue:pop() ---@type ezd.ui.UiElem|nil
+      if el ~= nil then
+        for _, child in ipairs(el.children) do
+          table.insert(descEls, child)
+          elQueue:push(child)
+        end
+      end
+    end
+    return descEls
+  end
 
   --[[ events ]]
   ---@param fn function
   function UiElem:onMousepressed(fn)
     return self.mousepressedRegistry:register(fn)
+  end
+  function UiElem:mousepress(e)
+    e = e or {}
+    e.el = e.el or self
+    if self:inBoundingRect(e.x, e.y) then
+      self.eventState.mousepressed = true
+      self.mousepressedRegistry:fire(e)
+    end
+  end
+  
+  function UiElem:onMousereleased(fn)
+    return self.mousereleasedRegistry:register(fn)
+  end
+  function UiElem:mouserelease(e)
+    e = e or {}
+    e.el = e.el or self
+    if self.eventState.mousepressed and self:inBoundingRect(e.x, e.y) then
+      self.mousereleasedRegistry:fire(e)
+      self.onclickedRegistry:fire(e)
+      self.eventState.mousepressed = false
+    end
+  end
+
+  function UiElem:onClicked(fn)
+    return self.onclickedRegistry:register(fn)
   end
 
   --[[ overrides ]]
@@ -126,10 +180,10 @@ local UiElem = (function ()
       ]]
       local nx = self.x
       local ny = self.y
-      local maxY = self.y
-      local maxX = self.x
-      local maxR = self.x
-      local maxB = self.y
+      local maxY = ny
+      local maxX = nx
+      local maxR = nx
+      local maxB = ny
       for i=1, sfIdx-1 do
         local child = self.children[i]
         local cy = child.y
@@ -158,6 +212,7 @@ local UiElem = (function ()
         nx = maxR
         ny = maxY
       else
+        --[[ can't grow; reflow ]]
         nx = self.x
         ny = maxB
       end

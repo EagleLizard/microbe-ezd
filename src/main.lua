@@ -1,7 +1,7 @@
 
 -- local lurker = require "lurker"
 local lick = require "lick"
--- lick.reset = true
+lick.reset = true
 lick.updateAllFiles = true
 lick.clearPackages = true
 
@@ -10,6 +10,7 @@ local dllModule = require "lib.datastruct.dll"
 local Dll = dllModule.Dll
 local menuModule = require "lib.ui.menu.menu"
 local Menu = menuModule.Menu
+local MenuElem = require "lib.ui.menu.menu-elem"
 
 local Obj = (function ()
   ---@class ezd.Obj
@@ -39,7 +40,7 @@ local Ctx = (function ()
   ---@field dt number
   ---@field sw integer
   ---@field sh integer
-  ---@field menu ezd.ui.Menu
+  ---@field menu ezd.ui.MenuElem
   local Ctx = {}
   Ctx.__index = Ctx
   function Ctx.new()
@@ -47,11 +48,17 @@ local Ctx = (function ()
     self.frameCount = 0
     self.sw = love.graphics.getWidth()
     self.sh = love.graphics.getHeight()
-    self.menu = Menu.new({
+    -- self.menu = Menu.new({
+    --   x = 10 + 200,
+    --   y = 10,
+    --   w = 100,
+    --   h = 100
+    -- })
+    self.menu = MenuElem.new({
       x = 10 + 200,
       y = 10,
       w = 100,
-      h = 100
+      h = 100,
     })
     return self
   end

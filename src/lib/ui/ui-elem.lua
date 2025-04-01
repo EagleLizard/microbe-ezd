@@ -1,5 +1,6 @@
 
 local printf = require "util.printf"
+local errorf = require("util.errorf")
 local Point = require "lib.geom.point"
 local EventRegistry = require "lib.ui.event-registry"
 local Queue = require "lib.datastruct.queue"
@@ -23,6 +24,11 @@ going to borrow concepts from DOM/TUI apps.
 ---@field minHeight? number
 ---@field maxWidth? number
 ---@field maxHeight? number
+---@field pad? number
+---@field padLeft? number
+---@field padRight? number
+---@field padTop? number
+---@field padBottom? number
 
 ---@class ezd.ui.UiElem.EventState
 ---@field mousepressed boolean
@@ -38,8 +44,14 @@ local UiElem = (function ()
   ---@field h number
   ---@field minWidth number
   ---@field minHeight number
-  ---@field maxWidth number
+  ---@field maxWidth number|nil
   ---@field maxHeight number
+  ---@field parent ezd.ui.UiElem|nil
+  ---@field pad number
+  ---@field padLeft number
+  ---@field padRight number
+  ---@field padTop number
+  ---@field padBottom number
   ---@field mousepressedRegistry ezd.ui.EventRegistry
   ---@field mousereleasedRegistry ezd.ui.EventRegistry
   ---@field onclickedRegistry ezd.ui.EventRegistry
@@ -67,8 +79,13 @@ local UiElem = (function ()
     self.h = opts.h or 0
     self.minWidth = opts.minWidth or -1
     self.minHeight = opts.minHeight or -1
-    self.maxWidth = opts.maxWidth or math.huge
+    self.maxWidth = opts.maxWidth or nil
     self.maxHeight = opts.maxHeight or math.huge
+    self.pad = opts.pad or 7
+    self.padLeft = opts.padLeft or self.pad
+    self.padRight = opts.padRight or self.pad
+    self.padTop = opts.padRight or self.pad
+    self.padBottom = opts.padBottom
     self.children = {}
     --[[ events ]]
     self.mousepressedRegistry = EventRegistry.new()
@@ -83,7 +100,10 @@ local UiElem = (function ()
   ---comment
   ---@param uiElem ezd.ui.UiElem
   function UiElem:addChild(uiElem)
-    --
+    if uiElem.parent ~= nil then
+      errorf("tried to add elem that already has a parent")
+    end
+    uiElem.parent = self
     table.insert(self.children, uiElem)
   end
   function UiElem:width()
@@ -119,6 +139,24 @@ local UiElem = (function ()
       and y >= self.y
       and y <= self:bottom()
     )
+  end
+  function UiElem:_maxWidth()
+    if self.maxWidth ~= nil then
+      return self.maxWidth
+    end
+    --[[
+      If the elem doesn't have its own maxWidth, default to inheriting maxWidth
+        from parent(s)
+    ]]
+    if self.maxWidth ~= nil then
+      return self.maxWidth
+    end
+    local mw
+    if self.parent ~= nil then
+      mw = self.parent:_maxWidth()
+      -- printf("%s - mw: %s\n", self.parent._type, mw)
+    end
+    return mw
   end
   --[[ ancestry ]]
   ---@return ezd.ui.UiElem[]
@@ -171,72 +209,71 @@ local UiElem = (function ()
 
   --[[ overrides ]]
   function UiElem:layout()
-    ---@param sfIdx integer
-    ---@param nextEl ezd.ui.UiElem
-    local function getNextChildPos(sfIdx, nextEl)
-      --[[
-        find the next empty x and y pos out of only
-          the childEls that have already been laid-out
-      ]]
-      local nx = self.x
-      local ny = self.y
-      local maxY = ny
-      local maxX = nx
-      local maxR = nx
-      local maxB = ny
-      for i=1, sfIdx-1 do
-        local child = self.children[i]
-        local cy = child.y
-        local cx = child.x
-        local cr = child:right()
-        local cb = child:bottom()
-        if cy > maxY then
-          maxY = cy
-          maxX = self.x
-          maxR = self.x
-          maxB = self.y
-        end
-        if cx > maxX then
-          maxX = cx
-        end
-        if cr > maxR then
-          maxR = cr
-        end
-        if cb > maxB then
-          maxB = cb
-        end
-        
-      end
-      if maxR - self.x < self.maxWidth then
-        --[[ can grow ]]
-        nx = maxR
-        ny = maxY
-      else
-        --[[ can't grow; reflow ]]
-        nx = self.x
-        ny = maxB
-      end
-      local nPt = Point.new(nx, ny)
-      return nPt
-    end
-    for i, el in ipairs(self.children) do
+    local maxWidth = self:_maxWidth()
+    local pad = self.pad
+    -- local fc = self.children[1]
+    -- local nx = ((fc and fc:right()) or self.x) + 1
+    local nx = self.x
+    local nr = self:right()
+    local nb = self:bottom()
+    local maxr = -math.huge
+    local maxb = -math.huge
+    local lineBoxes = {}
+    -- UiElem.layout(self)
+
+    for _, el in ipairs(self.children) do
       el:layout()
-      local nPos = getNextChildPos(i, el)
-      el.x = nPos.x
-      el.y = nPos.y
-      local er = el:right()
-      local eb = el:bottom()
-      local nw = er - self.x
-      local nh = eb - self.y
-      if nw > self.w then
-        --[[ grow horiz. ]]
-        self.w = nw
+      if #lineBoxes < 1 then
+        table.insert(lineBoxes, {})
       end
-      if nh > self.h then
-        --[[ grow vert. ]]
-        self.h = nh
+      local lineBox = lineBoxes[#lineBoxes]
+      --[[
+        Check if the width of the elements in the lineBox plus the
+          current element would exceed maxWidth
+      ]]
+      local lineWidth = 0
+      for _, lineEl in ipairs(lineBox) do
+        lineWidth = lineWidth + lineEl:width()
       end
+      if maxWidth ~= nil then
+        --[[ check for overflow or line-breaks]]
+        local nextLineWidth = el:width() + lineWidth
+        if nextLineWidth > maxWidth then
+          --[[
+            The elem will overflow.
+            By default, overflow will wrap.
+          ]]
+          table.insert(lineBoxes, {})
+          lineBox = lineBoxes[#lineBoxes]
+        end
+      end
+      table.insert(lineBox, el)
     end
+    local lineBoxY = self.y
+    local maxLineRight = -math.huge
+    local maxLineBottom = -math.huge
+    for i, lineBox in ipairs(lineBoxes) do
+      local lineBottom = -math.huge
+      local lineRight = -math.huge
+      local lineWidth = -math.huge
+      local lineHeight = -math.huge
+      for k, lbEl in ipairs(lineBox) do
+        local prevLbEl = self.children[k-1]
+        local pr = ((prevLbEl and prevLbEl:right()) or (self.x))
+        lbEl.x = pr
+        lbEl.y = lineBoxY
+        lineRight = math.max(lbEl:right(), lineRight)
+        lineBottom = math.max(lbEl:bottom(), lineBottom)
+        lineWidth = math.max(lbEl:width(), lineWidth)
+        lineHeight = math.max(lbEl:height(), lineHeight)
+      end
+      lineBoxY = lineBoxY + lineHeight
+      -- self.w = lineWidth - self.x + pad
+      maxLineRight = math.max(lineRight, maxLineRight)
+      maxLineBottom = math.max(lineBottom, maxLineBottom)
+    end
+    self.w = maxLineRight - self.x
+    self.h = maxLineBottom - self.y
   end
   ---@param opts? ezd.ui.RenderOpts
   function UiElem:render(opts)

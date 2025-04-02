@@ -8,31 +8,10 @@ lick.clearPackages = true
 local printf = require "util.printf"
 local dllModule = require "lib.datastruct.dll"
 local Dll = dllModule.Dll
-local menuModule = require "lib.ui.menu.menu"
-local Menu = menuModule.Menu
-local MenuElem = require "lib.ui.menu.menu-elem"
-
-local Obj = (function ()
-  ---@class ezd.Obj
-  ---@field id integer
-  local Obj = {}
-  Obj.__index = Obj
-  local objIdCounter = 0
-  local function getObjId()
-    local id = objIdCounter
-    objIdCounter = objIdCounter + 1
-    return id
-  end
-  function Obj.new()
-    local self = setmetatable({}, Obj)
-    self.id = getObjId()
-    return self
-  end
-  --[[ overrides ]]
-  function Obj:draw()end
-  function Obj:update()end
-  return Obj
-end)()
+local mainMenuModule = require("lib.ui.main-menu")
+local MainMenu = mainMenuModule.MainMenu
+local main_menu_width = mainMenuModule.main_menu_width
+local main_menu_height = mainMenuModule.main_menu_height
 
 local Ctx = (function ()
   ---@class ezd.Ctx
@@ -40,7 +19,7 @@ local Ctx = (function ()
   ---@field dt number
   ---@field sw integer
   ---@field sh integer
-  ---@field menu ezd.ui.MenuElem
+  ---@field mainMenu ezd.ui.MainMenu
   local Ctx = {}
   Ctx.__index = Ctx
   function Ctx.new()
@@ -48,18 +27,15 @@ local Ctx = (function ()
     self.frameCount = 0
     self.sw = love.graphics.getWidth()
     self.sh = love.graphics.getHeight()
-    -- self.menu = Menu.new({
-    --   x = 10 + 200,
-    --   y = 10,
-    --   w = 100,
-    --   h = 100
-    -- })
-    self.menu = MenuElem.new({
-      x = 10 + 200,
-      y = 10,
-      w = 100,
-      h = 100,
+    self.mainMenu = MainMenu.new({
+      x = math.floor(self.sw/2 - main_menu_width/2),
+      y = math.floor(self.sh/3 - main_menu_height/3),
     })
+    self.mainMenu:addButton("resume")
+    self.mainMenu:addButton("save")
+    self.mainMenu:addButton("load")
+    self.mainMenu:addButton("settings")
+    self.mainMenu:addButton("quit")
     return self
   end
   function Ctx:update(dt)
@@ -121,23 +97,9 @@ end
 
 function love.mousepressed(mx, my, dx, dy, istouch)
   local ctx = getCtx()
-  local els = ctx.menu:getDescendants()
-  for _, el in ipairs(els) do
-    el:mousepress({
-      x = mx,
-      y = my,
-    })
-  end
 end
 function love.mousereleased(mx, my, dx, dy, istouch)
   local ctx = getCtx()
-  local els = ctx.menu:getDescendants()
-  for _, el in ipairs(els) do
-    el:mouserelease({
-      x = mx,
-      y = my,
-    })
-  end
 end
 
 function love.update(dt)
@@ -149,5 +111,5 @@ function love.draw()
   local ctx = getCtx()
   local printStr = "hello ~ \n"..dbgStr(ctx)
   love.graphics.print(printStr, 20, 20)
-  ctx.menu:render()
+  ctx.mainMenu:render()
 end

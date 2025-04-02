@@ -2,9 +2,11 @@
 local Rect = require("lib.geom.rect")
 local menuButtonModule = require("lib.ui.menu-button")
 local MenuButton = menuButtonModule.MenuButton
+local menuButton2Module = require('lib.ui.menu-button2')
+local MenuButton2 = menuButton2Module.MenuButton2
 
-local main_menu_width = 200
-local main_menu_height = 250
+local main_menu_width = 150
+local main_menu_height = 100
 
 ---@class ezd.ui.MainMenuOpts
 ---@field x? number
@@ -20,7 +22,7 @@ local MainMenu = (function ()
   ---@field w number
   ---@field h number
   ---@field bodyRect ezd.geom.Rect
-  ---@field menuButtons ezd.ui.MenuButton[]
+  ---@field menuButtons ezd.ui.MenuButton2[]
   ---@field pad number
   ---@field rowGap number
   local MainMenu = {}
@@ -41,6 +43,22 @@ local MainMenu = (function ()
     return self
   end
 
+  function MainMenu:height()
+    return self.h + self.pad + self.pad
+  end
+  function MainMenu:rightPad()
+    return self.pad
+  end
+  function MainMenu:leftPad()
+    return self.pad
+  end
+  function MainMenu:topPad()
+    return self.pad
+  end
+  function MainMenu:bottomPad()
+    return self.pad
+  end
+
   ---@param label string
   function MainMenu:addButton(label)
     local leftPad = self.pad
@@ -49,19 +67,20 @@ local MainMenu = (function ()
     local btnOpts = {
       label = label,
       w = self.w - (leftPad + rightPad),
-      h = 35,
+      -- h = 25,
       -- align = "end",
       -- justify = "end",
+      pad = 5,
     }
-    local menuBtn = MenuButton.new(btnOpts)
+    -- local menuBtn = MenuButton.new(btnOpts)
+    local menuBtn = MenuButton2.new(btnOpts)
     table.insert(self.menuButtons, menuBtn)
     self:layout()
   end
 
   function MainMenu:layout()
-    local pad = self.pad
-    local lineY = self.y + pad
-    local lineX = self.x + pad
+    local lineY = self.y + self:topPad()
+    local lineX = self.x + self:leftPad()
     for _, menuBtn in ipairs(self.menuButtons) do
       local mbx = lineX
       local mby = lineY
@@ -70,10 +89,20 @@ local MainMenu = (function ()
       menuBtn:layout()
       lineY = lineY + menuBtn:height() + self.rowGap
     end
+    --[[ get the height of children ]]
+    local cyMin = math.huge
+    local cbyMax = -math.huge
+    for _, child in ipairs(self.menuButtons) do
+      cyMin = math.min(cyMin, child.y)
+      cbyMax = math.max(cbyMax, child:bottom())
+    end
+    local contentHeight = cbyMax - cyMin
+    self.h = math.max(self.h, contentHeight)
   end
 
   function MainMenu:render()
-    love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+    local w = self.w + self:rightPad()
+    love.graphics.rectangle("line", self.x, self.y, w, self:height())
     for _, menuBtn in ipairs(self.menuButtons) do
       menuBtn:render()
     end

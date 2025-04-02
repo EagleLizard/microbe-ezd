@@ -95,18 +95,23 @@ local function dbgStr(ctx)
   return str
 end
 
+---@type love.mousepressed
 function love.mousepressed(mx, my, dx, dy, istouch)
   local ctx = getCtx()
 end
+
+---@type love.mousereleased
 function love.mousereleased(mx, my, dx, dy, istouch)
   local ctx = getCtx()
 end
 
+---@type love.update
 function love.update(dt)
   local ctx = getCtx()
   ctx:update(dt)
 end
 
+---@type love.draw
 function love.draw()
   local ctx = getCtx()
   local printStr = "hello ~ \n"..dbgStr(ctx)

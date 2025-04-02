@@ -6,9 +6,6 @@ local StyleService = require("lib.service.style-service")
 local menu_button_width = 100
 local menu_button_height = 20
 
----@alias alignOpts "start"|"end"|"center"
----@alias justifyOpts "start"|"end"|"center"
-
 ---@class ezd.ui.MenuButtonOpts
 ---@field x? number
 ---@field y? number
@@ -16,8 +13,8 @@ local menu_button_height = 20
 ---@field h? number
 ---@field label? string
 ---@field font? love.Font
----@field align? alignOpts vertical align content
----@field justify? justifyOpts horizontal justify content
+---@field align? ezd.ui.MenuElem.alignOpts vertical align content
+---@field justify? ezd.ui.MenuElem.justifyOpts horizontal justify content
 ---@field pad? number
 
 local MenuButton = (function ()
@@ -28,8 +25,8 @@ local MenuButton = (function ()
   ---@field h number
   ---@field label string|nil
   ---@field font love.Font|nil
-  ---@field align alignOpts vertical align content
-  ---@field justify justifyOpts horizontal justify content
+  ---@field align ezd.ui.MenuElem.alignOpts vertical align content
+  ---@field justify ezd.ui.MenuElem.justifyOpts horizontal justify content
   ---@field pad number
   ---@field btnRect ezd.geom.Rect
   ---@field innerText love.Text|nil

@@ -36,6 +36,11 @@ local Ctx = (function ()
     self.mainMenu:addButton("Load")
     self.mainMenu:addButton("settings")
     self.mainMenu:addButton("quit")
+    for _, btn in ipairs(self.mainMenu.menuButtons) do
+      btn:onMousemoved(function()
+        printf("%s\n", btn.label)
+      end)
+    end
     return self
   end
   function Ctx:update(dt)
@@ -48,6 +53,7 @@ end)()
 ---@param ctx ezd.Ctx
 local function initEtc(ctx)
   printf("initEtc()\n")
+  --[[ test dll ]]
   local testDll = Dll.new()
   -- testDll:pushBack(0)
   -- printf("%s\n", testDll.head.val)
@@ -103,6 +109,12 @@ end
 ---@type love.mousereleased
 function love.mousereleased(mx, my, dx, dy, istouch)
   local ctx = getCtx()
+end
+
+---@type love.mousemoved
+function love.mousemoved(mx, my, dx, dy, istouch)
+  local ctx = getCtx()
+  ctx.mainMenu:mousemoved(mx, my, dx, dy, istouch)
 end
 
 ---@type love.update

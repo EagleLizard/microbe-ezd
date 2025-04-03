@@ -1,6 +1,7 @@
 
 local printf = require('util.printf')
 local obj = require('util.obj')
+local EventRegistry = require('lib.ui.event-registry')
 
 ---@alias ezd.ui.MenuElem.justifyOpts "start"|"end"|"center"
 ---@alias ezd.ui.MenuElem.alignOpts "start"|"end"|"center"
@@ -43,6 +44,7 @@ local MenuElem = (function ()
   ---@field _padRight number|nil
   ---@field _padTop number|nil
   ---@field _padBottom number|nil
+  ---@field _mousemovedReg ezd.ui.EventRegistry
   local MenuElem = {}
   MenuElem.__index = MenuElem
 
@@ -61,7 +63,33 @@ local MenuElem = (function ()
     self._padRight = opts.padRight or nil
     self._padTop = opts.padTop or nil
     self._padBottom = opts.padBottom or nil
+    self._mousemovedReg = EventRegistry.new()
     return self
+  end
+
+  function MenuElem:width()
+    return self.w + self:padLeft() + self:padRight()
+  end
+  function MenuElem:height()
+    return self.h + self:padTop() + self:padBottom()
+  end
+  function MenuElem:right()
+    return self.x + self:width()
+  end
+  function MenuElem:bottom()
+    return self.y + self:height()
+  end
+  ---comment
+  ---@param tx number
+  ---@param ty number
+  ---@return boolean
+  function MenuElem:checkBoundingRect(tx, ty)
+    return (
+      tx >= self.x
+      and tx <= self:right()
+      and ty >= self.y
+      and ty <= self:bottom()
+    )
   end
 
   function MenuElem:padRight()
@@ -77,13 +105,24 @@ local MenuElem = (function ()
     return self._padBottom or self.pad
   end
 
+  ---returns function that removes listener when called 
+  ---@param fn love.mousemoved
+  ---@return fun()
+  function MenuElem:onMousemoved(fn)
+    return self._mousemovedReg:register(fn)
+  end
   ---@type love.mousepressed
-  function MenuElem:mousepressed(mx, my, dx, dy, istouch)
+  function MenuElem:mousepressed(...)
     
   end
   ---@type love.mousereleased
-  function MenuElem:mousereleased(mx, my, dx, dy, istouch)
+  function MenuElem:mousereleased(...)
 
+  end
+  function MenuElem:mousemoved(mx, my, dy, dx, istouch)
+    if self:checkBoundingRect(mx, my) then
+      self._mousemovedReg:fire(mx, my, dy, dx, istouch)
+    end
   end
 
   --[[ super | interfaces | overrides ]]

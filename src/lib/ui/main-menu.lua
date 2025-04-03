@@ -1,9 +1,12 @@
 
+local printf = require('util.printf')
+
 local Rect = require("lib.geom.rect")
 local menuButtonModule = require("lib.ui.menu-button")
 local MenuButton = menuButtonModule.MenuButton
 local menuButton2Module = require('lib.ui.menu-button2')
 local MenuButton2 = menuButton2Module.MenuButton2
+local EventRegistry = require('lib.ui.event-registry')
 
 local main_menu_width = 150
 local main_menu_height = 100
@@ -24,6 +27,7 @@ local MainMenu = (function ()
   ---@field menuButtons ezd.ui.MenuButton2[]
   ---@field pad number
   ---@field rowGap number
+  ---@field _mousemovedReg ezd.ui.EventRegistry
   local MainMenu = {}
   MainMenu.__index = MainMenu
 
@@ -38,6 +42,7 @@ local MainMenu = (function ()
     self.pad = opts.pad or 15
     self.rowGap = 10
     self.menuButtons = {}
+    self._mousemovedReg = EventRegistry.new()
     return self
   end
 
@@ -46,6 +51,17 @@ local MainMenu = (function ()
   end
   function MainMenu:height()
     return self.h + self:padTop() + self:padBottom()
+  end
+  ---@param tx number
+  ---@param ty number
+  ---@return boolean
+  function MainMenu:checkBoundingRect(tx, ty)
+    return (
+      tx >= self.x
+      and tx <= self.x + self:width()
+      and ty >= self.y
+      and ty <= self.y + self:height()
+    )
   end
 
   function MainMenu:padRight()
@@ -59,6 +75,19 @@ local MainMenu = (function ()
   end
   function MainMenu:padBottom()
     return self.pad
+  end
+
+  ---@param fn love.mousemoved
+  ---@return fun()
+  function MainMenu:onMousemoved(fn)
+    return self._mousemovedReg:register(fn)
+  end
+  function MainMenu:mousemoved(mx, my, dy, dx, istouch)
+    if self:checkBoundingRect(mx, my) then
+      for _, el in ipairs(self.menuButtons) do
+        el:mousemoved(mx, my, dy, dx, istouch)
+      end
+    end
   end
 
   ---@param label string

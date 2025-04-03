@@ -16,6 +16,7 @@ local MenuButton2 = (function ()
   ---@field font love.Font
   ---@field innerText love.Text|nil
   ---@field innerTextPos ezd.geom.Point|nil
+  ---@field _boundRect? ezd.geom.Rect
   local MenuButton2 = {}
   MenuButton2.__index = MenuButton2
   setmetatable(MenuButton2, { __index = MenuElem })
@@ -40,6 +41,19 @@ local MenuButton2 = (function ()
   end
   function MenuButton2:bottom()
     return self.y + self:height()
+  end
+
+  ---comment
+  ---@param tx number
+  ---@param ty number
+  ---@return boolean
+  function MenuButton2:checkBoundingRect(tx, ty)
+    return (
+      tx >= self.x
+      and tx <= self:right()
+      and ty >= self.y
+      and ty <= self:bottom()
+    )
   end
 
   function MenuButton2:layout()

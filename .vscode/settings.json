@@ -12,6 +12,7 @@
     "februum",
     "istouch",
     "keypressed",
+    "mousemoved",
     "mousepress",
     "mousepressed",
     "mouserelease",

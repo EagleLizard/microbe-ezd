@@ -35,6 +35,9 @@ local MenuButton2 = (function ()
   function MenuButton2:height()
     return self.h + self:padTop() + self:padBottom()
   end
+  function MenuButton2:right()
+    return self.x + self:width()
+  end
   function MenuButton2:bottom()
     return self.y + self:height()
   end
@@ -45,6 +48,8 @@ local MenuButton2 = (function ()
     end
     local x = self.x + self:padLeft()
     local y = self.y + self:padTop()
+    local w = self.w
+    local h = self.h
     local innerText = self.innerText
     if innerText == nil then
       innerText = love.graphics.newText(self.font, self.label)
@@ -52,19 +57,21 @@ local MenuButton2 = (function ()
     end
 
     local tx, ty
+    -- ty = y
     if self.align == "start" then
       ty = y
     elseif self.align == "end" then
-      ty = (y + self:height()) - innerText:getHeight()
+      ty = (y + h) - innerText:getHeight()
     elseif self.align == "center" then
-      ty = (y + math.floor(self:height()/2)) - math.floor(innerText:getHeight()/2)
-    end    
+      ty = (y + math.floor(h/2)) - math.floor(innerText:getHeight()/2)
+    end
+    -- tx = x
     if self.justify == "start" then
       tx = x
     elseif self.justify == "end" then
-      tx = (x + self:width()) - innerText:getWidth()
+      tx = (x + w) - innerText:getWidth()
     elseif self.justify == "center" then
-      tx = (x + math.floor(self:width()/2)) - math.floor(innerText:getWidth()/2)
+      tx = (x + math.floor(w/2)) - math.floor(innerText:getWidth()/2)
     end
     local tPos = self.innerTextPos
     if tPos == nil then
@@ -77,6 +84,7 @@ local MenuButton2 = (function ()
         In this case it would be either the current width/height val, or the
         width/height of the inner content, whichever is larger
     ]]
+    -- self.w = self.innerText:getWidth()
     self.w = math.max(self.w, self.innerText:getWidth())
     self.h = math.max(self.h, self.innerText:getHeight())
   end

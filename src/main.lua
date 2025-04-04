@@ -1,7 +1,7 @@
 
 -- local lurker = require "lurker"
 local lick = require "lick"
-lick.reset = true
+-- lick.reset = true
 lick.updateAllFiles = true
 lick.clearPackages = true
 
@@ -37,10 +37,19 @@ local Ctx = (function ()
     self.mainMenu:addButton("settings")
     self.mainMenu:addButton("quit")
     for _, btn in ipairs(self.mainMenu.menuButtons) do
-      btn:onMousemoved(function()
-        printf("%s\n", btn.label)
+      -- btn:onMousemoved(function()
+      --   printf("%s\n", btn.label)
+      -- end)
+      btn:onMouseentered(function ()
+        printf("button '%s' enter\n", btn.label)
+      end)
+      btn:onMouseexited(function ()
+        printf("button '%s' exit\n", btn.label)
       end)
     end
+    self.mainMenu:onMousemoved(function (x, y, dx, dy, istouch)
+      printf("MainMenu mousemoved\n")
+    end)
     return self
   end
   function Ctx:update(dt)

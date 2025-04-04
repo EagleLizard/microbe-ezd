@@ -1,10 +1,13 @@
 
 local printf = require('util.printf')
 local obj = require('util.obj')
-local EventRegistry = require('lib.ui.event-registry')
+local EventRegistry = require('lib.ui.event.event-registry')
 
 ---@alias ezd.ui.MenuElem.justifyOpts "start"|"end"|"center"
 ---@alias ezd.ui.MenuElem.alignOpts "start"|"end"|"center"
+
+---@class ezd.ui.MenuElem.EventState
+---@field mouseIn boolean
 
 ---@class ezd.ui.MenuElemOpts
 ---@field x? number
@@ -45,10 +48,13 @@ local MenuElem = (function ()
   ---@field _padTop number|nil
   ---@field _padBottom number|nil
   ---@field _mousemovedReg ezd.ui.EventRegistry
+  ---@field _mouseenteredReg ezd.ui.EventRegistry
+  ---@field _mouseexitedReg ezd.ui.EventRegistry
+  ---@field _eventState ezd.ui.MenuElem.EventState
   local MenuElem = {}
   MenuElem.__index = MenuElem
 
-  ---@param opts ezd.ui.MenuElemOpts
+  ---@param opts? ezd.ui.MenuElemOpts
   function MenuElem.new(opts)
     local self = setmetatable({}, MenuElem)
     opts = obj.assign({}, menu_elem_opts_defaults, opts)
@@ -64,6 +70,11 @@ local MenuElem = (function ()
     self._padTop = opts.padTop or nil
     self._padBottom = opts.padBottom or nil
     self._mousemovedReg = EventRegistry.new()
+    self._mouseenteredReg = EventRegistry.new()
+    self._mouseexitedReg = EventRegistry.new()
+    self._eventState = {
+      mouseIn = false,
+    }
     return self
   end
 
@@ -105,11 +116,27 @@ local MenuElem = (function ()
     return self._padBottom or self.pad
   end
 
+  --[[ events ]]
+  ---@param fn fun()
+  function MenuElem:onMouseentered(fn)
+    return self._mouseenteredReg:register(fn)
+  end
+  ---@param fn fun()
+  function MenuElem:onMouseexited(fn)
+    return self._mouseexitedReg:register(fn)
+  end
   ---returns function that removes listener when called 
   ---@param fn love.mousemoved
   ---@return fun()
   function MenuElem:onMousemoved(fn)
     return self._mousemovedReg:register(fn)
+  end
+
+  function MenuElem:mouseexited(...)
+    return self._mouseexitedReg:fire(...)
+  end
+  function MenuElem:mouseentered(...)
+    return self._mouseenteredReg:fire(...)
   end
   ---@type love.mousepressed
   function MenuElem:mousepressed(...)
@@ -122,6 +149,15 @@ local MenuElem = (function ()
   function MenuElem:mousemoved(mx, my, dy, dx, istouch)
     if self:checkBoundingRect(mx, my) then
       self._mousemovedReg:fire(mx, my, dy, dx, istouch)
+      if not self._eventState.mouseIn then
+        self._eventState.mouseIn = true
+        self._mouseenteredReg:fire()
+      end
+    else
+      if self._eventState.mouseIn then
+        self._eventState.mouseIn = false
+        self._mouseexitedReg:fire()
+      end
     end
   end
 

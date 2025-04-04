@@ -1,87 +1,38 @@
 
 local printf = require('util.printf')
 
+local MenuElem = require('lib.ui.menu-elem')
 local Rect = require("lib.geom.rect")
 local menuButtonModule = require("lib.ui.menu-button")
 local MenuButton = menuButtonModule.MenuButton
 local menuButton2Module = require('lib.ui.menu-button2')
 local MenuButton2 = menuButton2Module.MenuButton2
-local EventRegistry = require('lib.ui.event-registry')
 
 local main_menu_width = 150
 local main_menu_height = 100
 
----@class ezd.ui.MainMenuOpts
----@field x? number
----@field y? number
----@field w? number
----@field h? number
----@field pad? number
+---@class ezd.ui.MainMenuOpts: ezd.ui.MenuElemOpts
 
 local MainMenu = (function ()
-  ---@class ezd.ui.MainMenu
-  ---@field x number
-  ---@field y number
-  ---@field w number
-  ---@field h number
+  ---@class ezd.ui.MainMenu: ezd.ui.MenuElem
   ---@field menuButtons ezd.ui.MenuButton2[]
-  ---@field pad number
   ---@field rowGap number
-  ---@field _mousemovedReg ezd.ui.EventRegistry
   local MainMenu = {}
   MainMenu.__index = MainMenu
+  setmetatable(MainMenu, { __index = MenuElem })
 
   ---@param opts? ezd.ui.MainMenuOpts
   function MainMenu.new(opts)
-    local self = setmetatable({}, MainMenu)
     opts = opts or {}
-    self.x = opts.x or 0
-    self.y = opts.y or 0
+    local self = setmetatable(MenuElem.new(opts), MainMenu)
     self.w = opts.w or main_menu_width
     self.h = opts.h or main_menu_height
     self.pad = opts.pad or 15
     self.rowGap = 10
     self.menuButtons = {}
-    self._mousemovedReg = EventRegistry.new()
     return self
   end
 
-  function MainMenu:width()
-    return self.w + self:padLeft() + self:padRight()
-  end
-  function MainMenu:height()
-    return self.h + self:padTop() + self:padBottom()
-  end
-  ---@param tx number
-  ---@param ty number
-  ---@return boolean
-  function MainMenu:checkBoundingRect(tx, ty)
-    return (
-      tx >= self.x
-      and tx <= self.x + self:width()
-      and ty >= self.y
-      and ty <= self.y + self:height()
-    )
-  end
-
-  function MainMenu:padRight()
-    return self.pad
-  end
-  function MainMenu:padLeft()
-    return self.pad
-  end
-  function MainMenu:padTop()
-    return self.pad
-  end
-  function MainMenu:padBottom()
-    return self.pad
-  end
-
-  ---@param fn love.mousemoved
-  ---@return fun()
-  function MainMenu:onMousemoved(fn)
-    return self._mousemovedReg:register(fn)
-  end
   function MainMenu:mousemoved(mx, my, dy, dx, istouch)
     if self:checkBoundingRect(mx, my) then
       for _, el in ipairs(self.menuButtons) do

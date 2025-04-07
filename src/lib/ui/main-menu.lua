@@ -40,6 +40,22 @@ local MainMenu = (function ()
       end
     end
   end
+  function MainMenu:mousepressed(evt)
+    if self:checkBoundingRect(evt.x, evt.y) then
+      for _, el in ipairs(self.menuButtons) do
+        el:mousepressed(evt)
+      end
+    end
+  end
+  function MainMenu:mousereleased(evt)
+    --[[
+      don't check bounding box of menu, so buttons can reset their
+      mouseDown state for click events
+    ]]
+    for _, el in ipairs(self.menuButtons) do
+      el:mousereleased(evt)
+    end
+  end
 
   ---@param label string
   function MainMenu:addButton(label)

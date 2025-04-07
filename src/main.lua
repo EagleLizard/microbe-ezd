@@ -12,6 +12,7 @@ local mainMenuModule = require("lib.ui.main-menu")
 local MainMenu = mainMenuModule.MainMenu
 local main_menu_width = mainMenuModule.main_menu_width
 local main_menu_height = mainMenuModule.main_menu_height
+local MouseEvent = require('lib.ui.event.mouse-event')
 
 local Ctx = (function ()
   ---@class ezd.Ctx
@@ -36,17 +37,6 @@ local Ctx = (function ()
     self.mainMenu:addButton("Load")
     self.mainMenu:addButton("settings")
     self.mainMenu:addButton("quit")
-    for _, btn in ipairs(self.mainMenu.menuButtons) do
-      -- btn:onMousemoved(function()
-      --   printf("%s\n", btn.label)
-      -- end)
-      btn:onMouseentered(function ()
-        printf("button '%s' enter\n", btn.label)
-      end)
-      btn:onMouseexited(function ()
-        printf("button '%s' exit\n", btn.label)
-      end)
-    end
     self.mainMenu:onMousemoved(function (x, y, dx, dy, istouch)
       printf("MainMenu mousemoved\n")
     end)
@@ -113,11 +103,15 @@ end
 ---@type love.mousepressed
 function love.mousepressed(mx, my, dx, dy, istouch)
   local ctx = getCtx()
+  local evt = MouseEvent.new(mx, my, dx, dy,istouch);
+  ctx.mainMenu:mousepressed(evt)
 end
 
 ---@type love.mousereleased
 function love.mousereleased(mx, my, dx, dy, istouch)
   local ctx = getCtx()
+  local evt = MouseEvent.new(mx, my, dx, dy,istouch);
+  ctx.mainMenu:mousereleased(evt)
 end
 
 ---@type love.mousemoved

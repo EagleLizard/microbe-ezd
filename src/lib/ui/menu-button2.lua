@@ -1,4 +1,6 @@
 
+local printf = require('util.printf')
+
 local obj = require('util.obj')
 local StyleService = require('lib.service.style-service')
 local Point = require('lib.geom.point')
@@ -27,6 +29,16 @@ local MenuButton2 = (function ()
     local self = setmetatable(MenuElem.new(opts), MenuButton2)
     self.label = opts.label or nil
     self.font = opts.font or StyleService.getDefaultFont()
+
+    self:onMouseentered(function ()
+      printf("MenuButton2 '%s' enter\n", self.label)
+    end)
+    self:onMouseexited(function ()
+      printf("MenuButton2 '%s' exit\n", self.label)
+    end)
+    self:onMouseclicked(function (evt)
+      printf("MenuButton2 '%s' mouseclicked\n", self.label)
+    end)
     return self
   end
 

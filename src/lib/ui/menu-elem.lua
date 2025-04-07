@@ -8,6 +8,7 @@ local EventRegistry = require('lib.ui.event.event-registry')
 
 ---@class ezd.ui.MenuElem.EventState
 ---@field mouseIn boolean
+---@field mouseDown boolean
 
 ---@class ezd.ui.MenuElemOpts
 ---@field x? number
@@ -50,6 +51,9 @@ local MenuElem = (function ()
   ---@field _mousemovedReg ezd.ui.EventRegistry
   ---@field _mouseenteredReg ezd.ui.EventRegistry
   ---@field _mouseexitedReg ezd.ui.EventRegistry
+  ---@field _mousepressedReg ezd.ui.EventRegistry
+  ---@field _mousereleasedReg ezd.ui.EventRegistry
+  ---@field _clickedReg ezd.ui.EventRegistry
   ---@field _eventState ezd.ui.MenuElem.EventState
   local MenuElem = {}
   MenuElem.__index = MenuElem
@@ -72,8 +76,12 @@ local MenuElem = (function ()
     self._mousemovedReg = EventRegistry.new()
     self._mouseenteredReg = EventRegistry.new()
     self._mouseexitedReg = EventRegistry.new()
+    self._mousepressedReg = EventRegistry.new()
+    self._mousereleasedReg = EventRegistry.new()
+    self._clickedReg = EventRegistry.new()
     self._eventState = {
       mouseIn = false,
+      mouseDown = false,
     }
     return self
   end
@@ -131,6 +139,21 @@ local MenuElem = (function ()
   function MenuElem:onMousemoved(fn)
     return self._mousemovedReg:register(fn)
   end
+  ---@param fn fun(evt: ezd.ui.MouseEvent)
+  ---@return fun()
+  function MenuElem:onMousepressed(fn)
+    return self._mousepressedReg:register(fn)
+  end
+  ---@param fn fun(evt: ezd.ui.MouseEvent)
+  ---@return fun()
+  function MenuElem:onMousereleased(fn)
+    return self._mousereleasedReg:register(fn)
+  end
+  ---@param fn fun(evt: ezd.ui.MouseEvent)
+  ---@return fun()
+  function MenuElem:onMouseclicked(fn)
+    return self._clickedReg:register(fn)
+  end
 
   function MenuElem:mouseexited(...)
     return self._mouseexitedReg:fire(...)
@@ -138,13 +161,26 @@ local MenuElem = (function ()
   function MenuElem:mouseentered(...)
     return self._mouseenteredReg:fire(...)
   end
-  ---@type love.mousepressed
-  function MenuElem:mousepressed(...)
-    
+  ---@param evt ezd.ui.MouseEvent
+  function MenuElem:mousepressed(evt)
+    if self:checkBoundingRect(evt.x, evt.y) then
+      if not self._eventState.mouseDown then
+        self._eventState.mouseDown = true
+        self._mousepressedReg:fire(evt)
+      end
+    end
   end
-  ---@type love.mousereleased
-  function MenuElem:mousereleased(...)
-
+  ---@param evt ezd.ui.MouseEvent
+  function MenuElem:mousereleased(evt)
+    self._mousereleasedReg:fire(evt)
+    if self._eventState.mouseDown and self:checkBoundingRect(evt.x, evt.y) then
+      self._clickedReg:fire(evt)
+    end
+    self._eventState.mouseDown = false
+  end
+  ---@param evt ezd.ui.MouseEvent
+  function MenuElem:mouseclicked(evt)
+    return self._clickedReg:fire(evt)
   end
   function MenuElem:mousemoved(mx, my, dy, dx, istouch)
     if self:checkBoundingRect(mx, my) then

@@ -7,6 +7,7 @@ local menuButtonModule = require("lib.ui.menu-button")
 local MenuButton = menuButtonModule.MenuButton
 local menuButton2Module = require('lib.ui.menu-button2')
 local MenuButton2 = menuButton2Module.MenuButton2
+local style = require('lib.ui.style')
 
 local main_menu_width = 150
 local main_menu_height = 100
@@ -34,10 +35,8 @@ local MainMenu = (function ()
   end
 
   function MainMenu:mousemoved(mx, my, dy, dx, istouch)
-    if self:checkBoundingRect(mx, my) then
-      for _, el in ipairs(self.menuButtons) do
-        el:mousemoved(mx, my, dy, dx, istouch)
-      end
+    for _, el in ipairs(self.menuButtons) do
+      el:mousemoved(mx, my, dy, dx, istouch)
     end
   end
   function MainMenu:mousepressed(evt)
@@ -115,6 +114,7 @@ local MainMenu = (function ()
     for _, menuBtn in ipairs(self.menuButtons) do
       -- love.graphics.print(string.format("x: %s\nw: %s", menuBtn.x, menuBtn.w), menuBtn.x - 100, menuBtn.y)
       menuBtn:render()
+      style.setDefault()
     end
   end
 

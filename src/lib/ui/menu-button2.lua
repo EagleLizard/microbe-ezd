@@ -5,6 +5,7 @@ local obj = require('util.obj')
 local StyleService = require('lib.service.style-service')
 local Point = require('lib.geom.point')
 local MenuElem = require('lib.ui.menu-elem')
+local style = require('lib.ui.style')
 
 local menu_button_opts_defaults = {}
 
@@ -30,15 +31,15 @@ local MenuButton2 = (function ()
     self.label = opts.label or nil
     self.font = opts.font or StyleService.getDefaultFont()
 
-    self:onMouseentered(function ()
-      printf("MenuButton2 '%s' enter\n", self.label)
-    end)
-    self:onMouseexited(function ()
-      printf("MenuButton2 '%s' exit\n", self.label)
-    end)
-    self:onMouseclicked(function (evt)
-      printf("MenuButton2 '%s' mouseclicked\n", self.label)
-    end)
+    -- self:onMouseentered(function ()
+    --   printf("MenuButton2 '%s' enter\n", self.label)
+    -- end)
+    -- self:onMouseexited(function ()
+    --   printf("MenuButton2 '%s' exit\n", self.label)
+    -- end)
+    -- self:onMouseclicked(function (evt)
+    --   printf("MenuButton2 '%s' mouseclicked\n", self.label)
+    -- end)
     return self
   end
 
@@ -116,13 +117,28 @@ local MenuButton2 = (function ()
   end
 
   function MenuButton2:render()
+    local x = self.x
+    local y = self.y
     local w = self:width()
     local h = self:height()
-    love.graphics.rectangle("line", self.x, self.y, w, h)
+    if self._eventState.mouseIn then
+      love.graphics.setColor(love.math.colorFromBytes(127, 255, 0))
+    else
+      love.graphics.setColor(1, 1, 1)
+    end 
+    local xOffset = 0
+    local yOffset = 0
+    if self._eventState.mouseDown then
+      xOffset = -2
+      yOffset = 2
+    end
+    love.graphics.rectangle("line", x + xOffset, y + yOffset, w, h)
     if self.innerText == nil or self.innerTextPos == nil then
       return
     end
-    love.graphics.draw(self.innerText, self.innerTextPos.x, self.innerTextPos.y)
+    local tx = self.innerTextPos.x
+    local ty = self.innerTextPos.y
+    love.graphics.draw(self.innerText, tx + xOffset, ty + yOffset)
   end
 
   return MenuButton2

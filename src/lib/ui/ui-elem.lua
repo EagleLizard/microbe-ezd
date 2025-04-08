@@ -1,32 +1,26 @@
 
-local printf = require('util.printf')
 local obj = require('util.obj')
 local EventRegistry = require('lib.ui.event.event-registry')
 
----@alias ezd.ui.MenuElem.justifyOpts "start"|"end"|"center"
----@alias ezd.ui.MenuElem.alignOpts "start"|"end"|"center"
+--[[ 
+Generalized ui-element
+  DOM-like
+  
+]]
+---@alias ezd.ui.UiElem.justifyOpts "start"|"end"|"center"
+---@alias ezd.ui.UiElem.alignOpts "start"|"end"|"center"
 
----@class ezd.ui.MenuElem.EventState
----@field mouseIn boolean
----@field mouseDown boolean
-
----@class ezd.ui.MenuElemOpts
+---@class ezd.ui.UiElemOpts
 ---@field x? number
 ---@field y? number
 ---@field w? number
 ---@field h? number
+---@field align? ezd.ui.UiElem.alignOpts vertical align content
+---@field justify? ezd.ui.UiElem.justifyOpts horizontal justify content
 ---@field pad? number
----@field padLeft? number
----@field padRight? number
----@field padTop? number
----@field padBottom? number
----@field justify? ezd.ui.MenuElem.justifyOpts horizontal justify content
----@field align? ezd.ui.MenuElem.alignOpts vertical align content
---[[ 
-  Base class for menu and menu related elements
-]]
----@type ezd.ui.MenuButtonOpts
-local menu_elem_opts_defaults = {
+
+---@type ezd.ui.UiElemOpts
+local ui_elem_opts_defaults = {
   x = 0,
   y = 0,
   w = 5,
@@ -35,14 +29,19 @@ local menu_elem_opts_defaults = {
   justify = "start",
   align = "start",
 }
-local MenuElem = (function ()
-  ---@class ezd.ui.MenuElem
+
+---@class ezd.ui.UiElem.EventState
+---@field mouseIn boolean
+---@field mouseDown boolean
+
+local UiElem = (function ()
+  ---@class ezd.ui.UiElem
   ---@field x number
   ---@field y number
   ---@field w number
   ---@field h number
-  ---@field justify ezd.ui.MenuElem.justifyOpts horizontal justify content
-  ---@field align ezd.ui.MenuElem.alignOpts vertical align content
+  ---@field justify ezd.ui.UiElem.justifyOpts
+  ---@field align ezd.ui.UiElem.alignOpts
   ---@field pad number
   ---@field _padLeft number|nil
   ---@field _padRight number|nil
@@ -54,14 +53,13 @@ local MenuElem = (function ()
   ---@field _mousepressedReg ezd.ui.EventRegistry
   ---@field _mousereleasedReg ezd.ui.EventRegistry
   ---@field _clickedReg ezd.ui.EventRegistry
-  ---@field _eventState ezd.ui.MenuElem.EventState
-  local MenuElem = {}
-  MenuElem.__index = MenuElem
+  ---@field _eventState ezd.ui.UiElem.EventState
+  local UiElem = {}
+  UiElem.__index = UiElem
 
-  ---@param opts? ezd.ui.MenuElemOpts
-  function MenuElem.new(opts)
-    local self = setmetatable({}, MenuElem)
-    opts = obj.assign({}, menu_elem_opts_defaults, opts)
+  function UiElem.new(opts)
+    local self = setmetatable({}, UiElem)
+    opts = obj.assign({}, ui_elem_opts_defaults, opts)
     self.x = opts.x
     self.y = opts.y
     self.w = opts.w
@@ -86,23 +84,23 @@ local MenuElem = (function ()
     return self
   end
 
-  function MenuElem:width()
+  --[[ Layout ]]
+
+  function UiElem:width()
     return self.w + self:padLeft() + self:padRight()
   end
-  function MenuElem:height()
+  function UiElem:height()
     return self.h + self:padTop() + self:padBottom()
   end
-  function MenuElem:right()
+  function UiElem:right()
     return self.x + self:width()
   end
-  function MenuElem:bottom()
+  function UiElem:bottom()
     return self.y + self:height()
   end
-  ---comment
   ---@param tx number
   ---@param ty number
-  ---@return boolean
-  function MenuElem:checkBoundingRect(tx, ty)
+  function UiElem:checkBoundingRect(tx, ty)
     return (
       tx >= self.x
       and tx <= self:right()
@@ -110,59 +108,51 @@ local MenuElem = (function ()
       and ty <= self:bottom()
     )
   end
-
-  function MenuElem:padRight()
+  function UiElem:padRight()
     return self._padRight or self.pad
   end
-  function MenuElem:padLeft()
+  function UiElem:padLeft()
     return self._padLeft or self.pad
   end
-  function MenuElem:padTop()
+  function UiElem:padTop()
     return self._padTop or self.pad
   end
-  function MenuElem:padBottom()
+  function UiElem:padBottom()
     return self._padBottom or self.pad
   end
+  
+  --[[ Events ]]
 
-  --[[ events ]]
-  ---@param fn fun()
-  function MenuElem:onMouseentered(fn)
+  function UiElem:onMouseentered(fn)
     return self._mouseenteredReg:register(fn)
   end
-  ---@param fn fun()
-  function MenuElem:onMouseexited(fn)
+  function UiElem:onMouseexited(fn)
     return self._mouseexitedReg:register(fn)
   end
-  ---returns function that removes listener when called 
-  ---@param fn love.mousemoved
-  ---@return fun()
-  function MenuElem:onMousemoved(fn)
+  ---@param fn fun(evt: ezd.ui.MousemoveEvent)
+  function UiElem:onMousemoved(fn)
     return self._mousemovedReg:register(fn)
   end
-  ---@param fn fun(evt: ezd.ui.MouseEvent)
-  ---@return fun()
-  function MenuElem:onMousepressed(fn)
+  function UiElem:onMousepressed(fn)
     return self._mousepressedReg:register(fn)
   end
-  ---@param fn fun(evt: ezd.ui.MouseEvent)
-  ---@return fun()
-  function MenuElem:onMousereleased(fn)
+  function UiElem:onMousereleased(fn)
     return self._mousereleasedReg:register(fn)
   end
-  ---@param fn fun(evt: ezd.ui.MouseEvent)
+  ---@param fn fun(evt: ezd.ui.ClickEvent)
   ---@return fun()
-  function MenuElem:onMouseclicked(fn)
+  function UiElem:onMouseclicked(fn)
     return self._clickedReg:register(fn)
   end
 
-  function MenuElem:mouseexited(...)
+  function UiElem:mouseexited(...)
     return self._mouseexitedReg:fire(...)
   end
-  function MenuElem:mouseentered(...)
+  function UiElem:mouseentered(...)
     return self._mouseenteredReg:fire(...)
   end
-  ---@param evt ezd.ui.MouseEvent
-  function MenuElem:mousepressed(evt)
+  ---@param evt ezd.ui.ClickEvent
+  function UiElem:mousepressed(evt)
     if self:checkBoundingRect(evt.x, evt.y) then
       if not self._eventState.mouseDown then
         self._eventState.mouseDown = true
@@ -170,21 +160,18 @@ local MenuElem = (function ()
       end
     end
   end
-  ---@param evt ezd.ui.MouseEvent
-  function MenuElem:mousereleased(evt)
+  ---@param evt ezd.ui.ClickEvent
+  function UiElem:mousereleased(evt)
     self._mousereleasedReg:fire(evt)
     if self._eventState.mouseDown and self:checkBoundingRect(evt.x, evt.y) then
       self._clickedReg:fire(evt)
     end
     self._eventState.mouseDown = false
   end
-  ---@param evt ezd.ui.MouseEvent
-  function MenuElem:mouseclicked(evt)
-    return self._clickedReg:fire(evt)
-  end
-  function MenuElem:mousemoved(mx, my, dy, dx, istouch)
-    if self:checkBoundingRect(mx, my) then
-      self._mousemovedReg:fire(mx, my, dy, dx, istouch)
+  ---@param evt ezd.ui.MousemoveEvent
+  function UiElem:mousemoved(evt)
+    if self:checkBoundingRect(evt.x, evt.y) then
+      self._mousemovedReg:fire(evt)
       if not self._eventState.mouseIn then
         self._eventState.mouseIn = true
         self._mouseenteredReg:fire()
@@ -192,18 +179,16 @@ local MenuElem = (function ()
     else
       if self._eventState.mouseIn then
         self._eventState.mouseIn = false
-        self._mouseexitedReg:fire()
+        self._mouseenteredReg:fire()
       end
     end
   end
 
   --[[ super | interfaces | overrides ]]
-  ---@type fun(self): ezd.geom.Rect|nil
-  function MenuElem:clientRect()end
-  function MenuElem:layout()end
-  function MenuElem:render()end
+  function UiElem:layout()end
+  function UiElem:render()end
 
-  return MenuElem
+  return UiElem
 end)()
 
-return MenuElem
+return UiElem

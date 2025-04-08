@@ -15,6 +15,7 @@
     "mouseclicked",
     "mouseentered",
     "mouseexited",
+    "Mousemove",
     "mousemoved",
     "mousepress",
     "mousepressed",

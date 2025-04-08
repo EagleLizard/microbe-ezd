@@ -1,10 +1,7 @@
 
 local printf = require('util.printf')
 
-local MenuElem = require('lib.ui.menu-elem')
-local Rect = require("lib.geom.rect")
-local menuButtonModule = require("lib.ui.menu-button")
-local MenuButton = menuButtonModule.MenuButton
+local UiElem = require('lib.ui.ui-elem')
 local menuButton2Module = require('lib.ui.menu-button2')
 local MenuButton2 = menuButton2Module.MenuButton2
 local style = require('lib.ui.style')
@@ -12,20 +9,20 @@ local style = require('lib.ui.style')
 local main_menu_width = 150
 local main_menu_height = 100
 
----@class ezd.ui.MainMenuOpts: ezd.ui.MenuElemOpts
+---@class ezd.ui.MainMenuOpts: ezd.ui.UiElemOpts
 
 local MainMenu = (function ()
-  ---@class ezd.ui.MainMenu: ezd.ui.MenuElem
+  ---@class ezd.ui.MainMenu: ezd.ui.UiElem
   ---@field menuButtons ezd.ui.MenuButton2[]
   ---@field rowGap number
   local MainMenu = {}
   MainMenu.__index = MainMenu
-  setmetatable(MainMenu, { __index = MenuElem })
+  setmetatable(MainMenu, { __index = UiElem })
 
   ---@param opts? ezd.ui.MainMenuOpts
   function MainMenu.new(opts)
+    local self = setmetatable(UiElem.new(opts), MainMenu)
     opts = opts or {}
-    local self = setmetatable(MenuElem.new(opts), MainMenu)
     self.w = opts.w or main_menu_width
     self.h = opts.h or main_menu_height
     self.pad = opts.pad or 15
@@ -34,10 +31,12 @@ local MainMenu = (function ()
     return self
   end
 
-  function MainMenu:mousemoved(mx, my, dy, dx, istouch)
+  ---@param evt ezd.ui.MousemoveEvent
+  function MainMenu:mousemoved(evt)
     for _, el in ipairs(self.menuButtons) do
-      el:mousemoved(mx, my, dy, dx, istouch)
+      el:mousemoved(evt)
     end
+    -- self._mousemovedReg:fire(mx, my, dy, dx, istouch)
   end
   function MainMenu:mousepressed(evt)
     if self:checkBoundingRect(evt.x, evt.y) then

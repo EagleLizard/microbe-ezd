@@ -17,7 +17,8 @@ local EventRegistry = (function ()
     self.fnMap = {}
     return self
   end
-  ---@return function
+  ---@param fn fun()
+  ---@return fun()
   function EventRegistry:register(fn)
     local fnId = getEventFnId()
     self.fnMap[fnId] = fn

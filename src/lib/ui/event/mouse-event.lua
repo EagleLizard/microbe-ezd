@@ -4,9 +4,6 @@ local MouseEvent = (function ()
   ---@field id integer
   ---@field x number
   ---@field y number
-  ---@field dx number
-  ---@field dy number
-  ---@field istouch boolean
   local MouseEvent = {}
   MouseEvent.__index = MouseEvent
   local eventIdCounter = 0
@@ -15,14 +12,11 @@ local MouseEvent = (function ()
     eventIdCounter = eventIdCounter + 1
     return id
   end
-  function MouseEvent.new(x, y, dx, dy, istouch)
+  function MouseEvent.new(x, y)
     local self = setmetatable({}, MouseEvent)
     self.id = getEventId()
     self.x = x
     self.y = y
-    self.dx = dx
-    self.dy = dy
-    self.istouch = istouch
     return self
   end
   return MouseEvent

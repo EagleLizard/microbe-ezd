@@ -4,17 +4,17 @@ local printf = require('util.printf')
 local obj = require('util.obj')
 local StyleService = require('lib.service.style-service')
 local Point = require('lib.geom.point')
-local MenuElem = require('lib.ui.menu-elem')
 local style = require('lib.ui.style')
+local UiElem = require('lib.ui.ui-elem')
 
 local menu_button_opts_defaults = {}
 
----@class ezd.ui.MenuButton2Opts: ezd.ui.MenuElemOpts
+---@class ezd.ui.MenuButton2Opts: ezd.ui.UiElemOpts
 ---@field label? string
 ---@field font? love.Font
 
 local MenuButton2 = (function ()
-  ---@class ezd.ui.MenuButton2: ezd.ui.MenuElem
+  ---@class ezd.ui.MenuButton2: ezd.ui.UiElem
   ---@field label string|nil
   ---@field font love.Font
   ---@field innerText love.Text|nil
@@ -22,24 +22,24 @@ local MenuButton2 = (function ()
   ---@field _boundRect? ezd.geom.Rect
   local MenuButton2 = {}
   MenuButton2.__index = MenuButton2
-  setmetatable(MenuButton2, { __index = MenuElem })
+  setmetatable(MenuButton2, { __index = UiElem })
 
   ---@param opts? ezd.ui.MenuButton2Opts
   function MenuButton2.new(opts)
     opts = opts or {}
-    local self = setmetatable(MenuElem.new(opts), MenuButton2)
+    local self = setmetatable(UiElem.new(opts), MenuButton2)
     self.label = opts.label or nil
     self.font = opts.font or StyleService.getDefaultFont()
 
-    -- self:onMouseentered(function ()
-    --   printf("MenuButton2 '%s' enter\n", self.label)
-    -- end)
-    -- self:onMouseexited(function ()
-    --   printf("MenuButton2 '%s' exit\n", self.label)
-    -- end)
-    -- self:onMouseclicked(function (evt)
-    --   printf("MenuButton2 '%s' mouseclicked\n", self.label)
-    -- end)
+    self:onMouseentered(function ()
+      printf("MenuButton2 '%s' enter\n", self.label)
+    end)
+    self:onMouseexited(function ()
+      printf("MenuButton2 '%s' exit\n", self.label)
+    end)
+    self:onMouseclicked(function (evt)
+      printf("MenuButton2 '%s' mouseclicked\n", self.label)
+    end)
     return self
   end
 

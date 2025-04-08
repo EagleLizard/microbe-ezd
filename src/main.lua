@@ -12,7 +12,8 @@ local mainMenuModule = require("lib.ui.main-menu")
 local MainMenu = mainMenuModule.MainMenu
 local main_menu_width = mainMenuModule.main_menu_width
 local main_menu_height = mainMenuModule.main_menu_height
-local MouseEvent = require('lib.ui.event.mouse-event')
+local ClickEvent = require('lib.ui.event.click-event')
+local MousemoveEvent = require('lib.ui.event.mousemove-event')
 
 local Ctx = (function ()
   ---@class ezd.Ctx
@@ -93,6 +94,7 @@ local function dbgStr(ctx)
   local lines = {}
   table.insert(lines, string.format("fc: %s", ctx.frameCount))
   table.insert(lines, string.format("dt: %s", ctx.dt))
+  table.insert(lines, string.format("fps: %s", love.timer.getFPS()))
   local str = ""
   for _, line in ipairs(lines) do
     str = str..line.."\n"
@@ -101,23 +103,24 @@ local function dbgStr(ctx)
 end
 
 ---@type love.mousepressed
-function love.mousepressed(mx, my, dx, dy, istouch)
+function love.mousepressed(mx, my, button, istouch, presses)
   local ctx = getCtx()
-  local evt = MouseEvent.new(mx, my, dx, dy,istouch);
+  local evt = ClickEvent.new(mx, my, button, istouch, presses);
   ctx.mainMenu:mousepressed(evt)
 end
 
 ---@type love.mousereleased
-function love.mousereleased(mx, my, dx, dy, istouch)
+function love.mousereleased(mx, my, button, istouch, presses)
   local ctx = getCtx()
-  local evt = MouseEvent.new(mx, my, dx, dy,istouch);
+  local evt = ClickEvent.new(mx, my, button, istouch, presses);
   ctx.mainMenu:mousereleased(evt)
 end
 
 ---@type love.mousemoved
 function love.mousemoved(mx, my, dx, dy, istouch)
   local ctx = getCtx()
-  ctx.mainMenu:mousemoved(mx, my, dx, dy, istouch)
+  local evt = MousemoveEvent.new(mx, my, dx, dy, istouch)
+  ctx.mainMenu:mousemoved(evt)
 end
 
 ---@type love.update

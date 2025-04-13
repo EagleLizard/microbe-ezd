@@ -38,9 +38,9 @@ local Ctx = (function ()
     self.mainMenu:addButton("Load")
     self.mainMenu:addButton("settings")
     self.mainMenu:addButton("quit")
-    self.mainMenu:onMousemoved(function (x, y, dx, dy, istouch)
-      printf("MainMenu mousemoved\n")
-    end)
+    -- self.mainMenu:onMousemoved(function (x, y, dx, dy, istouch)
+    --   printf("MainMenu mousemoved\n")
+    -- end)
     return self
   end
   function Ctx:update(dt)

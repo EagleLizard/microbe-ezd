@@ -58,14 +58,6 @@ local MainMenu = (function ()
     UiElem.render(self)
   end
 
-  function MainMenu:draw()
-    --[[ 
-      !!! should only do layout + render on root elem... I think
-    ]]
-    self:layout()
-    self:render()
-  end
-
   return MainMenu
 end)()
 

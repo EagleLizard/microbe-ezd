@@ -14,6 +14,7 @@ local main_menu_width = mainMenuModule.main_menu_width
 local main_menu_height = mainMenuModule.main_menu_height
 local ClickEvent = require('lib.ui.event.click-event')
 local MousemoveEvent = require('lib.ui.event.mousemove-event')
+local UiCtrl = require "lib.ui.ui-ctrl.ui-ctrl"
 
 local Ctx = (function ()
   ---@class ezd.Ctx
@@ -22,6 +23,7 @@ local Ctx = (function ()
   ---@field sw integer
   ---@field sh integer
   ---@field mainMenu ezd.ui.MainMenu
+  ---@field uiCtrl ezd.ui.UiCtrl
   local Ctx = {}
   Ctx.__index = Ctx
   function Ctx.new()
@@ -29,18 +31,18 @@ local Ctx = (function ()
     self.frameCount = 0
     self.sw = love.graphics.getWidth()
     self.sh = love.graphics.getHeight()
-    self.mainMenu = MainMenu.new({
+    self.uiCtrl = UiCtrl.new()
+    local mainMenu = MainMenu.new({
       x = math.floor(self.sw/2 - main_menu_width/2),
       y = math.floor(self.sh/3 - main_menu_height/3),
     })
-    self.mainMenu:addButton("resume")
-    self.mainMenu:addButton("save")
-    self.mainMenu:addButton("Load")
-    self.mainMenu:addButton("settings")
-    self.mainMenu:addButton("quit")
-    -- self.mainMenu:onMousemoved(function (x, y, dx, dy, istouch)
-    --   printf("MainMenu mousemoved\n")
-    -- end)
+    mainMenu:addButton("resume")
+    mainMenu:addButton("save")
+    mainMenu:addButton("Load")
+    mainMenu:addButton("settings")
+    mainMenu:addButton("quit")
+    self.uiCtrl:addEl(mainMenu)
+
     return self
   end
   function Ctx:update(dt)
@@ -55,11 +57,8 @@ local function initEtc(ctx)
   printf("initEtc()\n")
   --[[ test dll ]]
   local testDll = Dll.new()
-  -- testDll:pushBack(0)
-  -- printf("%s\n", testDll.head.val)
   local testVals = { 0, 1, 2, 3, 4 }
   for _, testVal in ipairs(testVals) do
-    -- printf("%s ", testVal)
     testDll:pushBack(testVal)
   end
   local dllIdx = 1
@@ -106,21 +105,21 @@ end
 function love.mousepressed(mx, my, button, istouch, presses)
   local ctx = getCtx()
   local evt = ClickEvent.new(mx, my, button, istouch, presses);
-  ctx.mainMenu:mousepressed(evt)
+  ctx.uiCtrl:mousepressed(evt)
 end
 
 ---@type love.mousereleased
 function love.mousereleased(mx, my, button, istouch, presses)
   local ctx = getCtx()
   local evt = ClickEvent.new(mx, my, button, istouch, presses);
-  ctx.mainMenu:mousereleased(evt)
+  ctx.uiCtrl:mousereleased(evt)
 end
 
 ---@type love.mousemoved
 function love.mousemoved(mx, my, dx, dy, istouch)
   local ctx = getCtx()
   local evt = MousemoveEvent.new(mx, my, dx, dy, istouch)
-  ctx.mainMenu:mousemoved(evt)
+  ctx.uiCtrl:mousemoved(evt)
 end
 
 ---@type love.update
@@ -134,5 +133,5 @@ function love.draw()
   local ctx = getCtx()
   local printStr = "hello ~ \n"..dbgStr(ctx)
   love.graphics.print(printStr, 20, 20)
-  ctx.mainMenu:draw()
+  ctx.uiCtrl:draw()
 end
